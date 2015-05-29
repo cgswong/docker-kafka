@@ -1,5 +1,5 @@
 # Dockerized Apache Kafka
-This repository holds the build definition and supporting files for building a [Docker](https://www.docker.com) image to run [Apache Kafka](http://kafka.apache.org/) in containers. The image is available from [DockerHub](https://registry.hub.docker.com/repos/monsantoco/)
+This repository holds the build definition and supporting files for building a [Docker](https://www.docker.com) image to run [Apache Kafka](http://kafka.apache.org/) in containers. The image is available from [DockerHub](https://registry.hub.docker.com/repos/cgswong/)
 
 Configuration is parameterized, enabling a Kafka cluster to be run from multiple container instances.
 
@@ -18,7 +18,7 @@ The image provides a cluster-able Kafka broker. As a minimum the following envir
 So, assuming your Docker host is `172.17.8.101`, has [Zookeeper](http://zookeeper.apache.org/) running and should now run Kafka as well, execute the following:
 
   ```sh
-  docker run -d --rm --name kafka1 --env KAFKA_BROKER_ID=1 --env KAFKA_ADVERTISED_HOST_NAME=172.17.8.101 --env KAFKA_ZOOKEEPER_CONNECT=172.17.8.101 monsantoco/kafka:latest
+  docker run -d --rm --name kafka1 --env KAFKA_BROKER_ID=1 --env KAFKA_ADVERTISED_HOST_NAME=172.17.8.101 --env KAFKA_ZOOKEEPER_CONNECT=172.17.8.101 cgswong/kafka:latest
   ```
 
 ### Additional configuration
@@ -32,7 +32,7 @@ Environment variables are accepted as a means to provide further configuration b
 For example, an environment variable `KAFKA_NUM_PARTITIONS=3` will result in `num.partitions=3` within `server.properties`. Similarly, to auto create topics when a broker publishes to a non-existent topic you can use an environment variable `KAFKA_AUTO_CREATE_TOPICS_ENABLE=true` which will result in `auto.create.topics.enable=true` within `server.properties` with the default replication factor and number of partitions which can also be set similarly.
 
 ## Issues
-If you have any problems with or questions about this image, please contact us through a [GitHub issue](https://github.com/monsantoco/dockerfiles/issues), prefixing the issue with 'KAFKA:'.
+If you have any problems with or questions about this image, please contact us through a [GitHub issue](https://github.com/cgswong/dockerfiles/issues), prefixing the issue with 'KAFKA:'.
 
 ## Contributing
 If you would to contribute to this project please review the [CONTRIBUTING guide](https://github.com/MonsantoCo/dockerfiles/kafka/blob/master/CONTRIBUTING.md).
