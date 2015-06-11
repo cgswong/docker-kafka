@@ -16,7 +16,7 @@ cd "$(dirname "$(readlink -f "$BASH_SOURCE")")"
 versions=( */ )
 versions=( "${versions[@]%/}" )
 downloadable=$(curl -sSL 'http://mirrors.ibiblio.org/apache/kafka' | sed -rn 's!.*?="([0-9]+\.[0-9]+\.[0-9]+\.[0-9]).*!\1!gp')
-url='git://github.com/monsantoco/dockerfile/zookeeper'
+url='git://github.com/cgswong/docker-kafka'
 
 for version in "${versions[@]}"; do
   recent=$(echo "$downloadable" | grep -m 1 "$version")
@@ -24,7 +24,7 @@ for version in "${versions[@]}"; do
   cp -p kafka.sh $version/
 
   commit="$(git log -1 --format='format:%H' -- "$version")"
-  fullVersion="$(grep -m1 'ENV ZK_VERSION' "$version/Dockerfile" | cut -d' ' -f3)"
+  fullVersion="$(grep -m1 'ENV KAFKA_VERSION' "$version/Dockerfile" | cut -d' ' -f3)"
 
   versionAliases=()
   while [ "$fullVersion" != "$version" -a "${fullVersion%[-]*}" != "$fullVersion" ]; do
