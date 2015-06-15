@@ -12,13 +12,13 @@ KAFKA_BROKER_ID=${KAFKA_BROKER_ID:-1}
 echo "KAFKA_BROKER_ID=$KAFKA_BROKER_ID"
 
 if [ -z "$KAFKA_ADVERTISED_HOST_NAME" ]; then
-  echo "${KAFKA_ADVERTISED_HOST_NAME} not set, exiting."
+  echo "KAFKA_ADVERTISED_HOST_NAME not set, exiting."
   exit 1
 fi
 echo "KAFKA_ADVERTISED_HOST_NAME=${KAFKA_ADVERTISED_HOST_NAME}"
 
 if [ -z "$KAFKA_ZOOKEEPER_CONNECT" ]; then
-  echo "${KAFKA_ZOOKEEPER_CONNECT} not set, exiting."
+  echo "KAFKA_ZOOKEEPER_CONNECT not set, exiting."
   exit 1
 fi
 echo "KAFKA_ZOOKEEPER_CONNECT=${KAFKA_ZOOKEEPER_CONNECT}"
@@ -48,3 +48,4 @@ sed -i "s/^kafka\.logs\.dir=.*$/kafka\.logs\.dir=${KAFKA_LOG_DIR}/" ${KAFKA_HOME
 
 cd $KAFKA_HOME
 $KAFKA_HOME/bin/kafka-server-start.sh config/server.properties
+
