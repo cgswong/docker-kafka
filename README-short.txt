@@ -1,1 +1,0 @@
-Docker image for Apache Kafka (~375 MB).

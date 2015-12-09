@@ -1,7 +1,7 @@
 FROM cgswong/java:openjre8
 MAINTAINER Stuart Wong <cgs.wong@gmail.com>
 
-ENV KAFKA_VERSION 0.8.2.1
+ENV KAFKA_VERSION 0.9.0.0
 ENV KAFKA_USER kafka
 ENV KAFKA_GROUP kafka
 ENV KAFKA_HOME /opt/kafka

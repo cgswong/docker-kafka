@@ -2,23 +2,17 @@
 Description=Apache Kafka service %i
 
 Requires=docker.service
-Requires=zookeeper@%i.service
 After=docker.service
-After=zookeeper@%i.service
 
 [Service]
 TimeoutStartSec=10m
 Restart=always
 RestartSec=5s
-
-ExecStartPre=-/usr/bin/docker rm %p-%i
-ExecStartPre=/usr/bin/docker pull cgswong/kafka:latest
-
-ExecStart=/usr/bin/bash -c "docker run --name %p-%i --publish 9092:9092 --env KAFKA_BROKER_ID=%i --env KAFKA_ADVERTISED_HOST_NAME=%H --env KAFKA_ZOOKEEPER_CONNECT=$(for zkHosts in $(etcdctl ls /services/zk/ensemble); do etcdctl get $zkHosts; done| paste -s -d',') cgswong/kafka:latest"
-
-ExecStop=/usr/bin/docker stop %p-%i
-ExecStopPost=-/usr/bin/docker rm %p-%i
+Environment="DOCKER_IMAGE=cgswong/kafka:latest"
+ExecStartPre=/bin/sh -c "docker inspect %p-%i &>/dev/null && docker rm -f %p-%i || true"
+ExecStartPre=/usr/bin/docker pull ${DOCKER_IMAGE}
+ExecStart=/usr/bin/bash -c "docker run --name %p-%i -p 9092:9092 -e KAFKA_BROKER_ID=%i -e KAFKA_ADVERTISED_HOST_NAME=%H -e KAFKA_ZOOKEEPER_CONNECT=$(for zkHosts in $(etcdctl ls /services/zk/ensemble); do etcdctl get $zkHosts; done| paste -s -d',') ${DOCKER_IMAGE}"
+ExecStop=/usr/bin/docker stop -t 30 %p-%i
 
 [X-Fleet]
 Conflicts=%p@*.service
-

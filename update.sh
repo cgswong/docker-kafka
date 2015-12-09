@@ -1,39 +1,25 @@
-#!/usr/local/bin/bash
-# ###################################################
-# DESC.: Update Dockerfile for each version directory.
-#        Show some information on each version.
-# ###################################################
+#!/usr/bin/env bash
 set -e
 
-declare -A aliases
-aliases=(
-  [0.8.2.1]='latest'
-)
+pkg=${BASH_SOURCE##*/}
+pkg_root=$(dirname "${BASH_SOURCE}")
 
-# Script directory
-cd "$(dirname "$(readlink -f "$BASH_SOURCE")")"
+# Source common script
+source "${pkg_root}/common.sh"
 
-versions=( */ )
+VERSIONS=${VERSIONS:-"$@"}
+if [ ! -z "$VERSIONS" ]; then
+  versions=( "$VERSIONS" )
+else
+  versions=( ?.?.?.? )
+fi
 versions=( "${versions[@]%/}" )
-downloadable=$(curl -sSL 'http://mirrors.ibiblio.org/apache/kafka' | sed -rn 's!.*?="([0-9]+\.[0-9]+\.[0-9]+\.[0-9]).*!\1!gp')
-url='git://github.com/cgswong/docker-kafka'
+versions=( $(printf '%s\n' "${versions[@]}"|sort -V) )
 
+dlVersions=$(curl -sSL 'http://mirrors.ibiblio.org/apache/kafka' | sed -rn 's!.*?="([0-9]+\.[0-9]+\.[0-9]+\.[0-9]).*!\1!gp' | sort -V | uniq)
 for version in "${versions[@]}"; do
-  recent=$(echo "$downloadable" | grep -m 1 "$version")
-  sed 's/%%VERSION%%/'"$recent"'/' <Dockerfile.tpl >"$version/Dockerfile"
-  cp -p kafka.sh $version/
-
-  commit="$(git log -1 --format='format:%H' -- "$version")"
-  fullVersion="$(grep -m1 'ENV KAFKA_VERSION' "$version/Dockerfile" | cut -d' ' -f3)"
-
-  versionAliases=()
-  while [ "$fullVersion" != "$version" -a "${fullVersion%[-]*}" != "$fullVersion" ]; do
-    versionAliases+=( $fullVersion )
-    fullVersion="${fullVersion%[-]*}"
-  done
-  versionAliases+=( $version ${aliases[$version]} )
-
-  for va in "${versionAliases[@]}"; do
-    echo "$va: ${url}@${commit} $version"
-  done
+  echo "${yellow}Updating version: ${version}${reset}"
+  cp kafka.sh "${version}/"
+  sed -e 's/%%VERSION%%/'"$version"'/' < Dockerfile.tpl > "$version/Dockerfile"
 done
+echo "${green}Complete${reset}"
