@@ -8,10 +8,12 @@ After=docker.service
 TimeoutStartSec=10m
 Restart=always
 RestartSec=5s
+LimitNOFILE=65535
+LimitMEMLOCK=infinity
 Environment="DOCKER_IMAGE=cgswong/kafka:latest"
 ExecStartPre=/bin/sh -c "docker inspect %p-%i &>/dev/null && docker rm -f %p-%i || true"
 ExecStartPre=/usr/bin/docker pull ${DOCKER_IMAGE}
-ExecStart=/usr/bin/bash -c "docker run --name %p-%i -p 9092:9092 -e KAFKA_BROKER_ID=%i -e KAFKA_ADVERTISED_HOST_NAME=%H -e KAFKA_ZOOKEEPER_CONNECT=$(for zkHosts in $(etcdctl ls /services/zk/ensemble); do etcdctl get $zkHosts; done| paste -s -d',') ${DOCKER_IMAGE}"
+ExecStart=/usr/bin/bash -c "docker run --name %p-%i -p 9092:9092 -p 19092:19092 -e SERVER_JVMFLAGS=\"-Xmx1024M -Xms1024M\" -e KAFKA_HEAP_OPTS=\"-Xmx1024M -Xms1024M\" -e kafka_broker_id=%i -e kafka_advertised_host_name=%H -e kafka_zookeeper_connect=$(for zkHosts in $(etcdctl ls /svc/zk/ensemble); do etcdctl get $zkHosts; done| paste -s -d',') ${DOCKER_IMAGE}"
 ExecStop=/usr/bin/docker stop -t 30 %p-%i
 
 [X-Fleet]

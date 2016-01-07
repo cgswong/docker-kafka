@@ -8,14 +8,14 @@ pkg_root=$(dirname "${BASH_SOURCE}")
 # Source common script
 source "${pkg_root}/common.sh"
 
-: ${DOCKER_IMAGE:="zookeeper"}
+: ${DOCKER_IMAGE:="kafka"}
 
 export DOCKER_IMAGE
 
 main() {
   versions=( "$@" )
   if [ ${#versions[@]} -eq 0 ]; then
-    versions=( ?.?.? )
+    versions=( ?.?.?.? )
   fi
   versions=( "${versions[@]%/}" )
   versions=( $(printf '%s\n' "${versions[@]}"|sort -V) )
