@@ -29,9 +29,18 @@ Environment variables are accepted as a means to provide further configuration b
 
 For example, an environment variable `kafka_num_partitions=3` will result in `num.partitions=3` within `server.properties`. Similarly, to auto create topics when a broker publishes to a non-existent topic you can use an environment variable `kafka_auto_create_topics_enable=true` which will result in `auto.create.topics.enable=true` within `server.properties` with the default replication factor and number of partitions which can also be set similarly.
 
-You can also download a configuration file by setting the special environment variable `kafka_cfg_url` to the download file location. Within this file you can also take advantage of variable substitution. Other Kafka settings can also be enabled via Docker `run` environment variables, for example, `-e KAFKA_JMX_OPTS=-Dcom.sun.management.jmxremote=false`.
+You can also download a configuration file by setting the special environment variable `kafka_cfg_url` to the download file location. Within this file you can also take advantage of variable substitution.
 
-Remote JMX_PORT is setup by default via port 19092.
+Other Kafka settings can also be enabled via Docker `run` environment variables, for example, `-e KAFKA_JMX_OPTS=-Dcom.sun.management.jmxremote=false`. A few environment variables of interest:
+
+- GC_LOG_ENABLED: Set to `true` to enable garbage collection logging.
+- **JMX_PORT:** JMX port for remote monitoring. Defaults to exposed port 19092 in this image.
+- KAFKA_GC_LOG_OPTS: Garbage collection logging options. `GC_LOG_ENABLED` must be enabled.
+- KAFKA_HEAP_OPTS: JVM memory settings or heap size, defaults to `-Xmx1G -Xms1G` (1GB).
+- KAFKA_JMX_OPTS: JMX options
+- KAFKA_JVM_PERFORMANCE_OPTS: JVM performance options. Defaults to `-server -XX:+UseG1GC -XX:MaxGCPauseMillis=20 -XX:InitiatingHeapOccupancyPercent=35 -XX:+DisableExplicitGC -Djava.awt.headless=true`
+- KAFKA_LOG4J_OPTS: Log4j options
+- KAFKA_OPTS: Generic JVM settings that you may want to set.
 
 ## Issues
 If you have any problems with or questions about this image, please contact me through a [GitHub issue](https://github.com/cgswong/docker-kafka/issues).
