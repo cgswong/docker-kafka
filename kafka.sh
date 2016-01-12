@@ -28,7 +28,7 @@ shutdown_handler() {
 KAFKA_DIR=/var/lib/kafka
 KAFKA_HOME=/opt/kafka
 LOG_DIR=${KAFKA_HOME}/logs
-KAFKA_CFG_FILE=${KAFKA_HOME}/config
+KAFKA_CFG_FILE=${KAFKA_HOME}/config/server.properties
 
 # Download the config file, if given a URL
 if [ ! -z "${kafka_cfg_url}" ]; then
@@ -36,25 +36,48 @@ if [ ! -z "${kafka_cfg_url}" ]; then
   curl -sSL ${kafka_cfg_url} --output ${KAFKA_CFG_FILE} || die "Unable to download ${kafka_cfg_url}"
 fi
 
+# Setup default variables, some best practices, some opinionated
+: ${kafka_auto_create_topics_enable:=true}
 : ${kafka_broker_id:=1}
+: ${kafka_delete_topic_enable:=true}
+: ${kafka_dual_commit_enabled:=false}
+: ${kafka_log_cleaner_enable:=true}
+: ${kafka_log_retention_hours:=168}
+: ${kafka_num_partitions:=1}
+: ${kafka_num_recovery_threads_per_data_dir:=1}
+: ${kafka_offsets_storage:=kafka}
+: ${kafka_port:=9092}
+: ${kafka_zookeeper_connect:=$ZOOKEEPER_PORT_2181_TCP_ADDR:$ZOOKEEPER_PORT_2181_TCP_PORT}
+: ${kafka_zookeeper_connection_timeout_ms:=6000}
+
+export kafka_auto_create_topics_enable
 export kafka_broker_id
+export kafka_delete_topic_enable
+export kafka_dual_commit_enabled
+export kafka_log_cleaner_enable
+export kafka_log_dir="${KAFKA_DIR}"
+export kafka_log_retention_hours
+export kafka_num_partitions
+export kafka_num_recovery_threads_per_data_dir
+export kafka_offsets_storage
+export kafka_port
+export kafka_zookeeper_connect
+export kafka_zookeeper_connection_timeout_ms
+export KAFKA_LOG4J_OPTS:="-Dlog4j.configuration=file:/etc/kafka/log4j.properties"
 
 KAFKA_LOCK_FILE="${KAFKA_DIR}/.lock"
 [ -e "${KAFKA_LOCK_FILE}" ] && log "[INFO] Removing stale lock file" && rm -f ${KAFKA_LOCK_FILE}
 
 # Process general environment variables
 for VAR in $(env | grep '^kafka_' | grep -v '^kafka_cfg_' | sort); do
-  key=$(echo "${VAR}" | sed -r "s/KAFKA_(.*)=.*/\1/g" | tr _ .)
+  key=$(echo "${VAR}" | sed -r "s/kafka_(.*)=.*/\1/g" | tr _ .)
   value=$(echo "${VAR}" | sed -r "s/(.*)=.*/\1/g")
-  if egrep -q "(^|^#)${key}" ${KAFKA_HOME}/config/server.properties; then
-    sed -r -i "s\\(^|^#)${key}=.*$\\${key}=${!value}\\g" ${KAFKA_HOME}/config/server.properties
+  if egrep -q "(^|^#)${key}" ${KAFKA_CFG_FILE}; then
+    sed -r -i "s\\(^|^#)${key}=.*$\\${key}=${!value}\\g" ${KAFKA_CFG_FILE}
   else
-    echo "$key=${!value}" >> ${KAFKA_HOME}/config/server.properties
+    echo "$key=${!value}" >> ${KAFKA_CFG_FILE}
   fi
 done
-
-# Logging config
-sed -i "s/^kafka\.logs\.dir=.*$/kafka\.logs\.dir=${LOG_DIR}/" ${KAFKA_HOME}/config/log4j.properties
 
 # The built-in start scripts set the first three system properties here, but
 # we add two more to make remote JMX easier/possible to access in a Docker
@@ -80,7 +103,7 @@ fi
 
 # if `docker run` first argument start with `--` the user is passing launcher arguments
 if [[ "$1" == "-"* || -z $1 ]]; then
-  exec ${KAFKA_HOME}/bin/kafka-server-start.sh config/server.properties "$@" &
+  exec ${KAFKA_HOME}/bin/kafka-server-start.sh ${KAFKA_CFG_FILE} "$@" &
   pid=$!
   log "[INFO] Started with PID: ${pid}"
   wait ${pid}
